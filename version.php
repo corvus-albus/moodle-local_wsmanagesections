@@ -28,4 +28,4 @@ $plugin->component = 'local_wsmanagesections';
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->release   = 'v0.9.0';
 $plugin->requires  = 2017111300;
-$plugin->version   = 2020072006;
+$plugin->version   = 2020072100;

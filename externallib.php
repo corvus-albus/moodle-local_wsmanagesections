@@ -36,10 +36,10 @@ require_once($CFG->dirroot . '/course/lib.php');
  */
 class local_wsmanagesections_external extends external_api {
 
-    // Functionset for create_sections ********************************************************************************************.
+    // Functionset for create_sections() ******************************************************************************************.
 
     /**
-     * Parameter description for create_section().
+     * Parameter description for create_sections().
      *
      * @return external_function_parameters.
      */
@@ -54,9 +54,10 @@ class local_wsmanagesections_external extends external_api {
     }
 
     /**
-     * Create a section
+     * Create $number sections at $position.
      *
-     * This function creates a new section and moves it to position $position.
+     * This function creates $number new sections at position $position.
+     * If $position = 0 the sections are appended to the end of the course.
      *
      * @param int $courseid Courseid of the belonging course.
      * @param int $position Position the section is created at.
@@ -90,7 +91,7 @@ class local_wsmanagesections_external extends external_api {
         $lastsectionnumber = $courseformat->get_last_section_number();
         $maxsections = $courseformat->get_max_sections();
 
-        // Test if the desired number of section is lower than maxsection of the courseformat.
+        // Test if the desired number of section is lower than maxsections of the courseformat.
         $desirednumsections = $lastsectionnumber + $number;
         if ($desirednumsections > $maxsections) {
             throw new moodle_exception('toomanysections', 'local_wsmanagesections', '',
@@ -113,7 +114,7 @@ class local_wsmanagesections_external extends external_api {
     }
 
     /**
-     * Parameter description for create_section().
+     * Parameter description for create_sections().
      *
      * @return external_description
      */
@@ -128,7 +129,7 @@ class local_wsmanagesections_external extends external_api {
         );
     }
 
-    // Functionset for move_section ***********************************************************************************************.
+    // Functionset for move_section() *********************************************************************************************.
 
     /**
      * Parameter description for move_section().
@@ -164,8 +165,7 @@ class local_wsmanagesections_external extends external_api {
         $params = self::validate_parameters(self::move_section_parameters(), array(
             'courseid' => $courseid,
             'sectionnumber' => $sectionnumber,
-            'position' => $position)
-        );
+            'position' => $position));
 
         if (! ($course = $DB->get_record('course', array('id' => $params['courseid'])))) {
             throw new moodle_exception('invalidcourseid', 'local_wsmanagesections', '', $courseid);
@@ -188,14 +188,7 @@ class local_wsmanagesections_external extends external_api {
                 array('sectionnumber' => $sectionumber, 'lastsectionnumber' => $lastsectionnumber));
         }
 
-        $sections = get_fast_modinfo($course)->get_section_info_all();
-
-        foreach ($sections as $key => $section) {
-            if ($key == $sectionnumber) {
-                break;
-            }
-        }
-
+        // Move section.
         if (!move_section_to($course, $sectionnumber, $position)) {
             throw new moodle_exception('movesectionerror', 'local_wsmanagesections');
         }
@@ -212,14 +205,14 @@ class local_wsmanagesections_external extends external_api {
         return null;
     }
 
-    // Functionset for update_sectionname *****************************************************************************************.
+    // Functionset for update_sectionnames() **************************************************************************************.
 
     /**
-     * Parameter description for update_sectionname().
+     * Parameter description for update_sectionnames().
      *
      * @return external_function_parameters.
      */
-    public static function update_sectionname_parameters() {
+    public static function update_sectionnames_parameters() {
         return new external_function_parameters(
             array(
                 'courseid' => new external_value(PARAM_INT, 'id of course'),
@@ -234,24 +227,23 @@ class local_wsmanagesections_external extends external_api {
     }
 
     /**
-     * Update sectionname.
+     * Update sectionnames.
      *
-     * This function updates the sections name.
+     * This function updates the names of sections.
      *
      * @param int $courseid Courseid of the belonging course.
      * @param array $sections Array of array with sectionnumber and sectionname for each section to be renamed.
      * @return array Array with warnings.
      */
-    public static function update_sectionname($courseid, $sections) {
+    public static function update_sectionnames($courseid, $sections) {
         global $CFG, $DB;
         require_once($CFG->dirroot . '/course/lib.php');
         require_once($CFG->dirroot . '/course/format/lib.php');
 
         // Validate parameters passed from web service.
-        $params = self::validate_parameters(self::update_sectionname_parameters(), array(
+        $params = self::validate_parameters(self::update_sectionnames_parameters(), array(
             'courseid' => $courseid,
-            'sections' => $sections)
-        );
+            'sections' => $sections));
 
         if (! ($course = $DB->get_record('course', array('id' => $params['courseid'])))) {
             throw new moodle_exception('invalidcourseid', 'local_wsmanagesections', '', $courseid);
@@ -273,17 +265,17 @@ class local_wsmanagesections_external extends external_api {
         foreach ($sections as $secname) {
             // Catch any exception while updating course and return as warning to user.
             try {
+                // Test if $secname['sectionnumber'] is present in the course.
                 if ($secname['sectionnumber'] < 0 or $secname['sectionnumber'] > $lastsectionnumber) {
                     throw new moodle_exception('invalidsectionnumber', 'local_wsmanagesections', '',
                         array('sectionnumber' => $secname['sectionnumber'], 'lastsectionnumber' => $lastsectionnumber));
                 }
 
-                foreach ($coursesections as $key => $section) {
-                    if ($key == $secname['sectionnumber']) {
-                        break;
-                    }
-                }
+                // Get the section that belongs to $secname['sectionnumber'].
+                $section = $DB->get_record('course_sections',
+                    array('course' => $courseid, 'section' => $secname['sectionnumber']), '*', MUST_EXIST);
 
+                // Rename section.
                 $newtitle = clean_param($secname['sectionname'], PARAM_TEXT);
                 if (strval($section->name) !== strval($newtitle)) {
                     course_update_section($section->course, $section, array('name' => $newtitle));
@@ -308,11 +300,11 @@ class local_wsmanagesections_external extends external_api {
     }
 
     /**
-     * Parameter description for update_sectionname().
+     * Parameter description for update_sectionnames().
      *
      * @return external_description
      */
-    public static function update_sectionname_returns() {
+    public static function update_sectionnames_returns() {
         return new external_single_structure(
             array(
                 'warnings' => new external_warnings()
@@ -320,7 +312,7 @@ class local_wsmanagesections_external extends external_api {
         );
     }
 
-    // Functionset for update_sectionformats **************************************************************************************.
+    // Functionset for update_sectionformats() ************************************************************************************.
 
     /**
      * Parameter description for update_sectionformats().
@@ -349,7 +341,7 @@ class local_wsmanagesections_external extends external_api {
     }
 
     /**
-     * Update section format options
+     * Update section format options.
      *
      * This function updates the section format options that are specific to the course format.
      *
@@ -362,10 +354,10 @@ class local_wsmanagesections_external extends external_api {
 
         $warnings = array();
 
+        // Validate parameters passed from web service.
         $params = self::validate_parameters(self::update_sectionformats_parameters(), array(
             'courseid' => $courseid,
-            'sections' => $sections)
-        );
+            'sections' => $sections));
 
         if (! ($course = $DB->get_record('course', array('id' => $params['courseid'])))) {
             throw new moodle_exception('invalidcourseid', 'local_wsmanagesections', '', $courseid);
@@ -381,16 +373,17 @@ class local_wsmanagesections_external extends external_api {
         }
 
         $lastsectionnumber = $courseformat->get_last_section_number();
-        file_put_contents('/var/www/html-443/moodle/local/wsmanagesections/test', $lastsectionnumber . " ###### \n");
 
         foreach ($params['sections'] as $sectiondata) {
-            // Catch any exception while updating sections and return as warning to user. Needs further work.
+            // Catch any exception while updating sections and return as warning to user.
             try {
+                // Test if $sectiondata['sectionnumber'] is present in the course.
                 if ($sectiondata['sectionnumber'] < 0 or $sectiondata['sectionnumber'] > $lastsectionnumber) {
                     throw new moodle_exception('invalidsectionnumber', 'local_wsmanagesections', '',
                         array('sectionnumber' => $sectiondata['sectionnumber'], 'lastsectionnumber' => $lastsectionnumber));
                 }
 
+                // Collect sectionformatoptions in array $data.
                 $data = array();
                 if (!empty($sectiondata['sectionformatoptions'])) {
                     foreach ($sectiondata['sectionformatoptions'] as $option) {
@@ -400,8 +393,10 @@ class local_wsmanagesections_external extends external_api {
                     }
                 }
 
+                // Get the section that belongs to $sectiondata['sectionnumber'].
                 $section = $DB->get_record('course_sections',
                     array('course' => $courseid, 'section' => $sectiondata['sectionnumber']), '*', MUST_EXIST);
+                // Update section format options.
                 course_update_section($courseid, $section, $data);
             } catch (Exception $e) {
                 $warning = array();
