@@ -41,9 +41,9 @@ $functions = array(
          'type' => 'create',
          'capabilities' => 'moodle/course:update',
     ),
-    'local_wsmanagesections_update_sectionname' => array(
+    'local_wsmanagesections_update_sectionnames' => array(
          'classname' => 'local_wsmanagesections_external',
-         'methodname' => 'update_sectionname',
+         'methodname' => 'update_sectionnames',
          'classpath' => 'local/wsmanagesections/externallib.php',
          'description' => 'Update sectionnames.',
          'type' => 'create',
