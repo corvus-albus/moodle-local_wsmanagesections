@@ -27,4 +27,5 @@ $string['invalidsectionnumber'] = 'A section with sectionnumber {$a->sectionnumb
 $string['courseformatwithoutsections'] = 'Course format {$a} does not use sections';
 $string['movesectionerror'] = 'Moving the section raised an unknwon error';
 $string['privacy:metadata'] = 'The local_wsmanagesections plugin does not store any personal data.';
+$string['pluginname'] = 'Webservice manage sections';
 $string['toomanysections'] = 'Your are trying to create too many sections. Allowed: {$a->max}, desired: {$a->desired}';
