@@ -5,7 +5,7 @@ This local plugin allows you to manage the section structure of a moodle course 
 You can already delete, hide and set markers via the webservice function core_course_edit_sections.
 With local_wsmanagesections you can in addition
 * create sections at a defined position,
-* move a section to a definde position,
+* move a section to a definded position,
 * update the sections names,
 * update the courseformat specific section format options. 
 
