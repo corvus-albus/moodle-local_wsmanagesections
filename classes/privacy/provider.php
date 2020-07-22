@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Privacy implementation for local_remote_backup_provider.
+ * Privacy implementation for local_wsmanagesections.
  *
  * @package   local_wsmanagesections
  * @copyright 2020 corvus albus
