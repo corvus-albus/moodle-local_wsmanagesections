@@ -31,7 +31,7 @@ $functions = array(
          'classpath' => 'local/wsmanagesections/externallib.php',
          'description' => 'Create sections at given position.',
          'type' => 'create',
-         'capabilities' => 'moodle/course:update',
+         'capabilities' => 'moodle/course:update, moodle/course:movesections',
     ),
     'local_wsmanagesections_move_section' => array(
          'classname' => 'local_wsmanagesections_external',
@@ -39,7 +39,7 @@ $functions = array(
          'classpath' => 'local/wsmanagesections/externallib.php',
          'description' => 'Move section to given position.',
          'type' => 'create',
-         'capabilities' => 'moodle/course:update',
+         'capabilities' => 'moodle/course:update, moodle/course:movesections',
     ),
     'local_wsmanagesections_update_sectionnames' => array(
          'classname' => 'local_wsmanagesections_external',
@@ -51,10 +51,26 @@ $functions = array(
     ),
     'local_wsmanagesections_update_sectionformatoptions' => array(
          'classname' => 'local_wsmanagesections_external',
-         'methodname' => 'update_sectionformats',
+         'methodname' => 'update_sectionformatoptions',
          'classpath' => 'local/wsmanagesections/externallib.php',
-         'description' => 'Update section formatoptions.',
+         'description' => 'Update section format options.',
          'type' => 'create',
          'capabilities' => 'moodle/course:update',
+    ),
+    'local_wsmanagesections_get_sectionnames' => array(
+         'classname' => 'local_wsmanagesections_external',
+         'methodname' => 'get_sectionnames',
+         'classpath' => 'local/wsmanagesections/externallib.php',
+         'description' => 'Get section names.',
+         'type' => 'create',
+         'capabilities' => 'moodle/course:view',
+    ),
+    'local_wsmanagesections_get_sectionformatoptions' => array(
+         'classname' => 'local_wsmanagesections_external',
+         'methodname' => 'get_sectionformatoptions',
+         'classpath' => 'local/wsmanagesections/externallib.php',
+         'description' => 'Get section format options.',
+         'type' => 'create',
+         'capabilities' => 'moodle/course:view',
     ),
 );
