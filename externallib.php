@@ -141,7 +141,8 @@ class local_wsmanagesections_external extends external_api {
             array(
                 'courseid' => new external_value(PARAM_INT, 'id of course'),
                 'sectionnumber' => new external_value(PARAM_INT, 'number of section'),
-                'position' => new external_value(PARAM_INT, 'Move section to position.'),
+                'position' => new external_value(PARAM_INT, 'Move section to position. For position > sectionnumber
+                    move to the end of the course.'),
             )
         );
     }
@@ -272,8 +273,11 @@ class local_wsmanagesections_external extends external_api {
                 }
 
                 // Get the section that belongs to $secname['sectionnumber'].
-                $section = $DB->get_record('course_sections',
-                    array('course' => $courseid, 'section' => $secname['sectionnumber']), '*', MUST_EXIST);
+                foreach ($coursesections as $key => $section) {
+                    if ($key == $sectiondata['sectionnumber']) {
+                        break;
+                    }
+                }
 
                 // Rename section.
                 $newtitle = clean_param($secname['sectionname'], PARAM_TEXT);
@@ -312,14 +316,14 @@ class local_wsmanagesections_external extends external_api {
         );
     }
 
-    // Functionset for update_sectionformats() ************************************************************************************.
+    // Functionset for update_sectionformatoptions() ******************************************************************************.
 
     /**
-     * Parameter description for update_sectionformats().
+     * Parameter description for update_sectionformatoptions().
      *
      * @return external_function_parameters.
      */
-    public static function update_sectionformats_parameters() {
+    public static function update_sectionformatoptions_parameters() {
         return new external_function_parameters(
             array(
                 'courseid' => new external_value(PARAM_INT, 'id of course'),
@@ -349,13 +353,13 @@ class local_wsmanagesections_external extends external_api {
      * @param array $sections Array of arrays with sectionnumber and sectionformatoptions (name, value).
      * @return array Array with warnings.
      */
-    public static function update_sectionformats($courseid, $sections) {
+    public static function update_sectionformatoptions($courseid, $sections) {
         global $CFG, $DB;
 
         $warnings = array();
 
         // Validate parameters passed from web service.
-        $params = self::validate_parameters(self::update_sectionformats_parameters(), array(
+        $params = self::validate_parameters(self::update_sectionformatoptions_parameters(), array(
             'courseid' => $courseid,
             'sections' => $sections));
 
@@ -372,6 +376,7 @@ class local_wsmanagesections_external extends external_api {
             throw new moodle_exception('courseformatwithoutsections', 'local_wsmanagesections', '', $courseformat);
         }
 
+        $coursesections = get_fast_modinfo($course)->get_section_info_all();
         $lastsectionnumber = $courseformat->get_last_section_number();
 
         foreach ($params['sections'] as $sectiondata) {
@@ -394,8 +399,12 @@ class local_wsmanagesections_external extends external_api {
                 }
 
                 // Get the section that belongs to $sectiondata['sectionnumber'].
-                $section = $DB->get_record('course_sections',
-                    array('course' => $courseid, 'section' => $sectiondata['sectionnumber']), '*', MUST_EXIST);
+                foreach ($coursesections as $key => $section) {
+                    if ($key == $sectiondata['sectionnumber']) {
+                        break;
+                    }
+                }
+
                 // Update section format options.
                 course_update_section($courseid, $section, $data);
             } catch (Exception $e) {
@@ -417,11 +426,11 @@ class local_wsmanagesections_external extends external_api {
     }
 
     /**
-     * Parameter description for update_sectionformats().
+     * Parameter description for update_sectionformatoptions().
      *
      * @return external_description
      */
-    public static function update_sectionformats_returns() {
+    public static function update_sectionformatoptions_returns() {
         return new external_single_structure(
             array(
                 'warnings' => new external_warnings()
@@ -429,4 +438,261 @@ class local_wsmanagesections_external extends external_api {
         );
     }
 
+    // Functionset for get_sectionnames() *****************************************************************************************.
+
+    /**
+     * Parameter description for get_sectionnames().
+     *
+     * @return external_function_parameters.
+     */
+    public static function get_sectionnames_parameters() {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_INT, 'id of course'),
+                'sectionnumbers' => new external_multiple_structure(
+                        new external_value(PARAM_INT, 'sectionnumber (position of section)')
+                            , 'List of sectionnumbers. Wrong numbers will be ignored.
+                                If list of sectionnumbers and list of sectionids are empty
+                                then return names of all sections of the given course.',
+                                        VALUE_DEFAULT, array()),
+                'sectionids' => new external_multiple_structure(
+                        new external_value(PARAM_INT, 'id of section')
+                            , 'List of sectionids. Wrong ids will be ignored.
+                                If list of sectionnumbers and list of sectionids are empty
+                                then return names of all sections of the given course.',
+                                        VALUE_DEFAULT, array())
+            )
+        );
+    }
+
+    /**
+     * Get sectionnames.
+     *
+     * This function gets the names of sections.
+     *
+     * @param int $courseid Courseid of the belonging course.
+     * @param array $sectionnumbers Array of sectionnumbers (int, optional).
+     * @param array $sectionids Array of section ids (int, optional).
+     * @return array Array with array for each section ('sectionnumber', 'sectionid', 'sectionname').
+     */
+    public static function get_sectionnames($courseid, $sectionnumbers = [], $sectionids = []) {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/course/lib.php');
+        require_once($CFG->dirroot . '/course/format/lib.php');
+
+        // Validate parameters passed from web service.
+        $params = self::validate_parameters(self::get_sectionnames_parameters(), array(
+            'courseid' => $courseid,
+            'sectionnumbers' => $sectionnumbers,
+            'sectionids' => $sectionids));
+
+        if (! ($course = $DB->get_record('course', array('id' => $params['courseid'])))) {
+            throw new moodle_exception('invalidcourseid', 'local_wsmanagesections', '', $courseid);
+        }
+
+        require_login($course);
+        require_capability('moodle/course:view', context_course::instance($courseid));
+
+        $courseformat = course_get_format($course);
+        // Test if courseformat allows sections.
+        if (!$courseformat->uses_sections()) {
+            throw new moodle_exception('courseformatwithoutsections', 'local_wsmanagesections', '', $courseformat);
+        }
+
+        $lastsectionnumber = $courseformat->get_last_section_number();
+        $coursesections = get_fast_modinfo($course)->get_section_info_all();
+
+        // Collect mentioned sectionnumbers in $secnums.
+        $secnums = array();
+        // Test if $sectionnumbers are part of $coursesections and collect secnums. Inapt numbers will be ignored.
+        if (!empty($sectionnumbers)) {
+            foreach ($sectionnumbers as $num) {
+                if ($num >= 0 and $num <= $lastsectionnumber) {
+                    $secnums[] = $num;
+                }
+            }
+        }
+        // Test if $sectionids are part of $coursesections and collect secnums. Inapt ids will be ignored.
+        if (!empty($sectionids)) {
+            foreach ($coursesections as $section) {
+                $coursesecids[] = $section->id;
+            }
+            foreach ($sectionids as $id) {
+                if ($pos = array_search($id, $coursesecids)) {
+                    $secnums[] = $pos;
+                }
+            }
+        }
+        // Collect all sectionnumbers, if paramters are empty.
+        if (empty($sectionnumbers) and empty($sectionids)) {
+            $secnums = range(0, $lastsectionnumber);
+        }
+        $secnums = array_unique($secnums, SORT_NUMERIC);
+        sort($secnums, SORT_NUMERIC);
+
+        // Arrange the requested informations.
+        $sectionsinfo = array();
+        foreach ($coursesections as $section) {
+            if (in_array($section->section, $secnums)) {
+                $sectionsinfo[] = array(
+                    'sectionnumber' => $section->section,
+                    'sectionid' => $section->id,
+                    'sectionname' => format_string(get_section_name($course, $section)));
+            }
+        }
+
+        return $sectionsinfo;
+    }
+
+    /**
+     * Parameter description for get_sectionnames().
+     *
+     * @return external_description
+     */
+    public static function get_sectionnames_returns() {
+        return new external_multiple_structure(
+                new external_single_structure(
+                        array(
+                            'sectionnumber'  => new external_value(PARAM_INT, 'sectionnumber (position of section)'),
+                            'sectionid' => new external_value(PARAM_INT, 'section id'),
+                            'sectionname' => new external_value(PARAM_TEXT, 'section name')
+                        )
+                )
+        );
+    }
+
+    // Functionset for get_sectionformatoptions() *********************************************************************************.
+
+    /**
+     * Parameter description for get_sectionformatoptions().
+     *
+     * @return external_function_parameters.
+     */
+    public static function get_sectionformatoptions_parameters() {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_INT, 'id of course'),
+                'sectionnumbers' => new external_multiple_structure(
+                        new external_value(PARAM_INT, 'sectionnumber (position of section)')
+                            , 'List of sectionnumbers. Wrong numbers will be ignored.
+                                If list of sectionnumbers and list of sectionids are empty
+                                then return format options of all sections of the given course.',
+                                        VALUE_DEFAULT, array()),
+                'sectionids' => new external_multiple_structure(
+                        new external_value(PARAM_INT, 'id of section')
+                            , 'List of sectionids. Wrong ids will be ignored.
+                                If list of sectionnumbers and list of sectionids are empty
+                                then return format options of all sections of the given course.',
+                                        VALUE_DEFAULT, array())
+            )
+        );
+    }
+
+    /**
+     * Get section format options.
+     *
+     * This function gets the section format options that are specific to the course format.
+     *
+     * @param int $courseid Courseid of the belonging course.
+     * @param array $sectionnumbers Array of sectionnumbers (int, optional).
+     * @param array $sectionids Array of section ids (int, optional).
+     * @return array Array with array for each section ('sectionnumber', 'sectionid', Array with format options).
+     */
+    public static function get_sectionformatoptions($courseid, $sectionnumbers = [], $sectionids = []) {
+        global $CFG, $DB;
+        require_once($CFG->dirroot . '/course/lib.php');
+        require_once($CFG->dirroot . '/course/format/lib.php');
+
+        // Validate parameters passed from web service.
+        $params = self::validate_parameters(self::get_sectionformatoptions_parameters(), array(
+            'courseid' => $courseid,
+            'sectionnumbers' => $sectionnumbers,
+            'sectionids' => $sectionids));
+
+        if (! ($course = $DB->get_record('course', array('id' => $params['courseid'])))) {
+            throw new moodle_exception('invalidcourseid', 'local_wsmanagesections', '', $courseid);
+        }
+
+        require_login($course);
+        require_capability('moodle/course:view', context_course::instance($courseid));
+
+        $courseformat = course_get_format($course);
+        // Test if courseformat allows sections.
+        if (!$courseformat->uses_sections()) {
+            throw new moodle_exception('courseformatwithoutsections', 'local_wsmanagesections', '', $courseformat);
+        }
+
+        $lastsectionnumber = $courseformat->get_last_section_number();
+        $coursesections = get_fast_modinfo($course)->get_section_info_all();
+
+        // Collect mentioned sectionnumbers in $secnums.
+        $secnums = array();
+        // Test if $sectionnumbers are part of $coursesections and collect secnums. Inapt numbers will be ignored.
+        if (!empty($sectionnumbers)) {
+            foreach ($sectionnumbers as $num) {
+                if ($num >= 0 and $num <= $lastsectionnumber) {
+                    $secnums[] = $num;
+                }
+            }
+        }
+        // Test if $sectionids are part of $coursesections and collect secnums. Inapt ids will be ignored.
+        if (!empty($sectionids)) {
+            foreach ($coursesections as $section) {
+                $coursesecids[] = $section->id;
+            }
+            foreach ($sectionids as $id) {
+                if ($pos = array_search($id, $coursesecids)) {
+                    $secnums[] = $pos;
+                }
+            }
+        }
+        // Collect all sectionnumbers, if paramters are empty.
+        if (empty($sectionnumbers) and empty($sectionids)) {
+            $secnums = range(0, $lastsectionnumber);
+        }
+        $secnums = array_unique($secnums, SORT_NUMERIC);
+        sort($secnums, SORT_NUMERIC);
+
+        // Arrange the requested informations.
+        $sectionsinfo = array();
+        foreach ($coursesections as $section) {
+            if (in_array($section->section, $secnums)) {
+                $sectioninfo['sectionnumber'] = $section->section;
+                $sectioninfo['sectionid'] = $section->id;
+                // Get section format options and write them to sectioninfo.
+                $sectionformatoptions = $courseformat->get_format_options($section);
+                $sectioninfo['sectionformatoptions'] = array();
+                foreach ($sectionformatoptions as $key => $value) {
+                    $sectioninfo['sectionformatoptions'][] = array(
+                        'name' => $key,
+                        'value' => $value);
+                }
+                $sectionsinfo[] = $sectioninfo;
+            }
+        }
+
+        return $sectionsinfo;
+    }
+
+    /**
+     * Parameter description for get_sectionformatoptions().
+     *
+     * @return external_description
+     */
+    public static function get_sectionformatoptions_returns() {
+        return new external_multiple_structure(
+            new external_single_structure(
+                array(
+                    'sectionnumber'  => new external_value(PARAM_INT, 'sectionnumber (position of section)'),
+                    'sectionid' => new external_value(PARAM_INT, 'section id'),
+                    'sectionformatoptions' => new external_multiple_structure(
+                        new external_single_structure(
+                        array('name' => new external_value(PARAM_ALPHANUMEXT, 'section format option name'),
+                            'value' => new external_value(PARAM_RAW, 'section format option value')
+                        )), 'additional section format options for particular course format', VALUE_OPTIONAL
+                    )
+                )
+            )
+        );
+    }
 }
