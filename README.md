@@ -2,12 +2,14 @@ Moodle WebService Manage Sections (wsmanagesections)
 ====================================================
 
 This local plugin allows you to manage the section structure of a moodle course via REST API. 
-You can already delete, hide and set markers via the webservice function core_course_edit_sections.
-With local_wsmanagesections you can in addition
-* local_wsmanagesections_update_sectionnames: create sections at a defined position,
-* move a section to a definded position,
-* update the sections names,
-* update the courseformat specific section format options. 
+Via the webservice function core_course_edit_sections you can already delete and hide section and set markers.
+"Webservice mamnage sections" gives you additional functions:
+* local_wsmanagesections_create_sections: create sections at a defined position,
+* local_wsmanagesections_move_section: move a section to a definded position,
+* local_wsmanagesections_get_sectionnames: get section names,
+* local_wsmanagesections_update_sectionnames: update section names,
+* local_wsmanagesections_get_sectionformatoptions: get section format options specific to the courseformat,
+* local_wsmanagesections_update_sectionformatoptions: update section format options specific to the courseformat.
 
 Configuration
 -------------
