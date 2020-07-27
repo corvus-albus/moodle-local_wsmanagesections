@@ -28,4 +28,5 @@ $string['courseformatwithoutsections'] = 'Course format {$a} does not use sectio
 $string['movesectionerror'] = 'Moving the section raised an unknwon error';
 $string['privacy:metadata'] = 'The local_wsmanagesections plugin does not store any personal data.';
 $string['pluginname'] = 'Webservice manage sections';
-$string['toomanysections'] = 'Your are trying to create too many sections. Allowed: {$a->max}, desired: {$a->desired}';
+$string['sectionnotfound'] = 'A section with the desired number/id ($a) not found.';
+$string['toomanysections'] = 'You are trying to create too many sections. Allowed: {$a->max}, desired: {$a->desired}';
