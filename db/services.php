@@ -33,6 +33,14 @@ $functions = array(
          'type' => 'create',
          'capabilities' => 'moodle/course:update, moodle/course:movesections',
     ),
+    'local_wsmanagesections_delete_sections' => array(
+         'classname' => 'local_wsmanagesections_external',
+         'methodname' => 'delete_sections',
+         'classpath' => 'local/wsmanagesections/externallib.php',
+         'description' => 'Delete sections.',
+         'type' => 'create',
+         'capabilities' => 'moodle/course:update',
+    ),
     'local_wsmanagesections_move_section' => array(
          'classname' => 'local_wsmanagesections_external',
          'methodname' => 'move_section',
@@ -41,36 +49,20 @@ $functions = array(
          'type' => 'create',
          'capabilities' => 'moodle/course:update, moodle/course:movesections',
     ),
-    'local_wsmanagesections_update_sectionnames' => array(
+    'local_wsmanagesections_get_sections' => array(
          'classname' => 'local_wsmanagesections_external',
-         'methodname' => 'update_sectionnames',
+         'methodname' => 'get_sections',
          'classpath' => 'local/wsmanagesections/externallib.php',
-         'description' => 'Update sectionnames.',
-         'type' => 'create',
-         'capabilities' => 'moodle/course:update',
-    ),
-    'local_wsmanagesections_update_sectionformatoptions' => array(
-         'classname' => 'local_wsmanagesections_external',
-         'methodname' => 'update_sectionformatoptions',
-         'classpath' => 'local/wsmanagesections/externallib.php',
-         'description' => 'Update section format options.',
-         'type' => 'create',
-         'capabilities' => 'moodle/course:update',
-    ),
-    'local_wsmanagesections_get_sectionnames' => array(
-         'classname' => 'local_wsmanagesections_external',
-         'methodname' => 'get_sectionnames',
-         'classpath' => 'local/wsmanagesections/externallib.php',
-         'description' => 'Get section names.',
+         'description' => 'Get settings of sections.',
          'type' => 'create',
          'capabilities' => 'moodle/course:view',
     ),
-    'local_wsmanagesections_get_sectionformatoptions' => array(
+    'local_wsmanagesections_update_sections' => array(
          'classname' => 'local_wsmanagesections_external',
-         'methodname' => 'get_sectionformatoptions',
+         'methodname' => 'update_sections',
          'classpath' => 'local/wsmanagesections/externallib.php',
-         'description' => 'Get section format options.',
+         'description' => 'Update sections.',
          'type' => 'create',
-         'capabilities' => 'moodle/course:view',
+         'capabilities' => 'moodle/course:update',
     ),
 );
