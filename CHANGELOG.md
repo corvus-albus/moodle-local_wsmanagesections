@@ -1,6 +1,6 @@
 # Changelog
 
-## 2020-07-27
+## 2020-07-27 (v.0.9.6)
 - rearranged function according to the example of the core_course functions
 - update is now possible für additional settings: summary, visibility, highlight, ...
 - added a function to delete sections
