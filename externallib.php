@@ -25,7 +25,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/lib/externallib.php');
-require_once($CFG->dirroot . '/course/lib.php');
 
 /**
  * Web service API definition.
@@ -106,7 +105,7 @@ class local_wsmanagesections_external extends external_api {
         $return = array();
         for ($i = 1; $i <= max($number, 1); $i ++) {
             $section = course_create_section($course, $position);
-            // If more then one section is created, the sectionnumber for already created ones will increas.
+            // If more then one section is created, the sectionnumber for already created ones will increase.
             $return[] = array('sectionid' => $section->id, 'sectionnumber' => $section->section + $number - $i);
         }
 
@@ -144,13 +143,13 @@ class local_wsmanagesections_external extends external_api {
                         new external_value(PARAM_INT, 'sectionnumber (position of section)')
                             , 'List of sectionnumbers. Wrong numbers will be ignored.
                                 If list of sectionnumbers and list of sectionids are empty
-                                then return names of all sections of the given course.',
+                                then delete all sections despite of the first.',
                                         VALUE_DEFAULT, array()),
                 'sectionids' => new external_multiple_structure(
                         new external_value(PARAM_INT, 'id of section')
                             , 'List of sectionids. Wrong ids will be ignored.
                                 If list of sectionnumbers and list of sectionids are empty
-                                then return names of all sections of the given course.',
+                                then delete all sections despite of the first.',
                                         VALUE_DEFAULT, array())
             )
         );
@@ -346,13 +345,13 @@ class local_wsmanagesections_external extends external_api {
                         new external_value(PARAM_INT, 'sectionnumber (position of section)')
                             , 'List of sectionnumbers. Wrong numbers will be ignored.
                                 If list of sectionnumbers and list of sectionids are empty
-                                then return names of all sections of the given course.',
+                                then return infos of all sections of the given course.',
                                         VALUE_DEFAULT, array()),
                 'sectionids' => new external_multiple_structure(
                         new external_value(PARAM_INT, 'id of section')
                             , 'List of sectionids. Wrong ids will be ignored.
                                 If list of sectionnumbers and list of sectionids are empty
-                                then return names of all sections of the given course.',
+                                then return infos of all sections of the given course.',
                                         VALUE_DEFAULT, array())
             )
         );
