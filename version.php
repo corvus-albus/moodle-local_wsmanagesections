@@ -26,6 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_wsmanagesections';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = 'v0.9.6.1';
+$plugin->release   = 'v0.9.6.2';
 $plugin->requires  = 2017051500;
-$plugin->version   = 2020073000;
+$plugin->version   = 2020080500;
