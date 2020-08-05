@@ -247,7 +247,7 @@ class local_wsmanagesections_external extends external_api {
                             'id' => new external_value(PARAM_INT, 'section id'),
                             'number' => new external_value(PARAM_INT, 'position of the section'),
                             'name' => new external_value(PARAM_TEXT, 'sectionname'),
-                             'deleted' => new external_value(PARAM_INT, 'deleted (true/false)'),
+                             'deleted' => new external_value(PARAM_BOOL, 'deleted (true/false)'),
                         )
                 )
         );
