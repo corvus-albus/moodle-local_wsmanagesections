@@ -181,7 +181,7 @@ class local_wsmanagesections_external extends external_api {
         }
 
         require_login($course);
-        require_capability('moodle/course:view', context_course::instance($courseid));
+        require_capability('moodle/course:update', context_course::instance($courseid));
 
         $courseformat = course_get_format($course);
         // Test if courseformat allows sections.
