@@ -516,7 +516,7 @@ class local_wsmanagesections_external extends external_api {
                                 new external_single_structure(
                                     array(
                                         'name' => new external_value(PARAM_TEXT, 'section format option name'),
-                                        'value' => new external_value(PARAM_TEXT, 'section format option value')
+                                        'value' => new external_value(PARAM_RAW, 'section format option value')
                                     )
                                 ), 'additional options for particular course format', VALUE_OPTIONAL),
                         )
